@@ -5,6 +5,7 @@ namespace Money.Api.Definitions;
 
 public class FilesStorageDefinition : AppDefinition
 {
+    public override bool Enabled => true; // todo ждёт починки https://github.com/MaxNagibator/Money/issues/23
     public override int ApplicationOrderIndex => 2;
 
     public override void ConfigureServices(WebApplicationBuilder builder)
