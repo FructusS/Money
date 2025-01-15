@@ -5,14 +5,13 @@ namespace Money.Api.Definitions;
 
 public class FilesStorageDefinition : AppDefinition
 {
-    public override bool Enabled => false; // todo ждёт починки https://github.com/MaxNagibator/Money/issues/23
     public override int ApplicationOrderIndex => 2;
 
     public override void ConfigureServices(WebApplicationBuilder builder)
     {
-        IConfigurationSection filesStorage = builder.Configuration.GetSection("FilesStorage");
+        var filesStorage = builder.Configuration.GetSection("FilesStorage");
 
-        FilesStorageConfig? filesStorageConfig = filesStorage.Get<FilesStorageConfig>();
+        var filesStorageConfig = filesStorage.Get<FilesStorageConfig>();
 
         if (string.IsNullOrEmpty(filesStorageConfig?.Path))
         {
