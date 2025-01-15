@@ -1,0 +1,100 @@
+﻿<MudCard Elevation="3">
+    <MudCardHeader Class="border-b-2 border-solid pa-2"
+                   Style="border-color: var(--mud-palette-divider)">
+        <MudItem md="2"
+                 xs="4">
+            <MudStack Justify="Justify.FlexStart"
+                      Row
+                      StretchItems="StretchItems.End">
+                <MudIcon Icon="@Icons.Material.Rounded.CalendarToday"
+                         Size="Size.Small" />
+                <MudText>
+                    @OperationsDay.Date.ToShortDateString()
+                </MudText>
+            </MudStack>
+        </MudItem>
+
+        <MudItem md="2"
+                 xs="4">
+            @*TODO Требуется оптимизация. 140ms из 240ms *@
+            <OperationDialog OnSubmit="OnSubmit"
+                             Operation="@(new Operation { Date = OperationsDay.Date, Category = Category.Empty })"
+                             @ref="_dialog">
+                <div class="align-center d-flex flex-row gap-4">
+                    @foreach (var type in OperationTypes)
+                    {
+                        @RenderOperationButton(type)
+                    }
+
+                    <MudMenu AnchorOrigin="Origin.BottomCenter"
+                             Color="Color.Info"
+                             Dense
+                             Disabled="_dialog.IsOpen"
+                             Icon="@Icons.Material.Rounded.Add"
+                             MaxHeight="500"
+                             Size="Size.Small"
+                             TransformOrigin="Origin.TopCenter">
+                        <Virtualize Context="fastOperation"
+                                    Items="FastOperations">
+                            <MudMenuItem OnClick="() => _dialog.ToggleOpen(fastOperation)">
+                                @fastOperation.Name
+                            </MudMenuItem>
+                        </Virtualize>
+                    </MudMenu>
+                </div>
+            </OperationDialog>
+        </MudItem>
+
+        @foreach (var operationType in OperationTypes)
+        {
+            <MudItem md="2"
+                     xs="2">
+                <div class="align-center d-flex flex-row gap-4">
+                    <MudIcon Color="@operationType.Color"
+                             Icon="@operationType.Icon"
+                             Size="Size.Small" />
+                    <MudText>
+                        @OperationsDay.CalculateSum(operationType).ToString("N0")
+                    </MudText>
+                </div>
+            </MudItem>
+        }
+    </MudCardHeader>
+    <MudCardContent Class="pa-2">
+        <MudStack Spacing="0">
+            @for (var i = 0; i < OperationsDay.Operations.Count; i++)
+            {
+                var operation = OperationsDay.Operations[i];
+
+                if (operation.IsDeleted)
+                {
+                    <MudStack AlignItems="AlignItems.Center"
+                              Row>
+                        <MudText Style="text-decoration: line-through;">
+                            @operation.Sum.ToString("N0") - @operation.Category.Name - @operation.Comment
+                        </MudText>
+                        <MudSpacer />
+                        <MudButton Color="Color.Info"
+                                   EndIcon="@Icons.Material.Rounded.Cancel"
+                                   OnClick="() => OnRestore.InvokeAsync(operation)">
+                            Восстановить
+                        </MudButton>
+                    </MudStack>
+                }
+                else
+                {
+                    <OperationItem @key="operation"
+                                   OnDelete="() => OnDelete.InvokeAsync(operation)"
+                                   OnEdit="OnEdit"
+                                   Operation="@operation" />
+
+                    if (Settings.ShowDividers && i != OperationsDay.Operations.Count - 1)
+                    {
+                        <MudDivider DividerType="DividerType.FullWidth"
+                                    FlexItem />
+                    }
+                }
+            }
+        </MudStack>
+    </MudCardContent>
+</MudCard>

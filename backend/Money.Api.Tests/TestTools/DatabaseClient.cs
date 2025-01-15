@@ -1,5 +1,4 @@
-﻿using Money.Api.Tests.TestTools.Entities;
-using Money.ApiClient;
+﻿using Money.ApiClient;
 using Money.Data;
 
 namespace Money.Api.Tests.TestTools;
@@ -17,7 +16,7 @@ public class DatabaseClient(Func<ApplicationDbContext> createWebDbContext, Money
 
     public TestUser WithUser()
     {
-        TestUser obj = new();
+        var obj = new TestUser();
         obj.Attach(this);
         return obj;
     }
@@ -34,7 +33,7 @@ public class DatabaseClient(Func<ApplicationDbContext> createWebDbContext, Money
             // поскольку тесты в несколько потоков это выполняют, а политика партии пока не рассматривает конкаранси случаи
             lock (LockObject)
             {
-                foreach (TestObject testObject in _testObjects)
+                foreach (var testObject in _testObjects)
                 {
                     testObject.SaveObject();
                 }

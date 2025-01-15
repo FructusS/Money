@@ -1,27 +1,22 @@
 ﻿namespace Money.Business.Models;
 
 /// <summary>
-///     Операция.
+/// Операция.
 /// </summary>
-public class Operation
+public class Operation : OperationBase
 {
-    public int Id { get; set; }
-
-    public required int CategoryId { get; set; }
-
-    public decimal Sum { get; set; }
-
-    public string? Comment { get; set; }
-
-    public string? Place { get; set; }
-
     public DateTime Date { get; set; }
 
     /// <summary>
-    ///     Идентификатор родительской регулярной задачи.
+    /// Идентификатор родительской регулярной задачи.
     /// </summary>
     /// <remarks>
-    ///     Не null, если операция создана регулярной задачей.
+    /// Не null, если операция создана регулярной задачей.
     /// </remarks>
     public int? CreatedTaskId { get; set; }
+
+    /// <summary>
+    /// Идентификатор места.
+    /// </summary>
+    public int? PlaceId { get; set; }
 }

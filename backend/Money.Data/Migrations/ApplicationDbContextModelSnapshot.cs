@@ -265,7 +265,7 @@ namespace Money.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.DomainCategory", b =>
+            modelBuilder.Entity("Money.Data.Entities.Category", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("integer")
@@ -318,7 +318,207 @@ namespace Money.Data.Migrations
                     b.ToTable("categories", (string)null);
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.DomainOperation", b =>
+            modelBuilder.Entity("Money.Data.Entities.Debt", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id")
+                        .HasColumnOrder(1);
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("comment");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("integer")
+                        .HasColumnName("owner_id");
+
+                    b.Property<string>("PayComment")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("pay_comment");
+
+                    b.Property<decimal>("PaySum")
+                        .HasColumnType("numeric")
+                        .HasColumnName("pay_sum");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("integer")
+                        .HasColumnName("status_id");
+
+                    b.Property<decimal>("Sum")
+                        .HasColumnType("numeric")
+                        .HasColumnName("sum");
+
+                    b.Property<int>("TypeId")
+                        .HasColumnType("integer")
+                        .HasColumnName("type_id");
+
+                    b.HasKey("UserId", "Id")
+                        .HasName("pk_debts");
+
+                    b.HasIndex("UserId", "OwnerId")
+                        .HasDatabaseName("ix_debts_user_id_owner_id");
+
+                    b.ToTable("debts", (string)null);
+                });
+
+            modelBuilder.Entity("Money.Data.Entities.DebtOwner", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id")
+                        .HasColumnOrder(1);
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("name");
+
+                    b.HasKey("UserId", "Id")
+                        .HasName("pk_debt_owners");
+
+                    b.ToTable("debt_owners", (string)null);
+                });
+
+            modelBuilder.Entity("Money.Data.Entities.DomainUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AuthUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("auth_user_id");
+
+                    b.Property<int>("NextCategoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("next_category_id");
+
+                    b.Property<int>("NextDebtId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("next_debt_id");
+
+                    b.Property<int>("NextDebtOwnerId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("next_debt_owner_id");
+
+                    b.Property<int>("NextFastOperationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("next_fast_operation_id");
+
+                    b.Property<int>("NextOperationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("next_operation_id");
+
+                    b.Property<int>("NextPlaceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("next_place_id");
+
+                    b.Property<int>("NextRegularOperationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("next_regular_operation_id");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea")
+                        .HasColumnName("row_version");
+
+                    b.HasKey("Id")
+                        .HasName("pk_domain_users");
+
+                    b.ToTable("domain_users", (string)null);
+                });
+
+            modelBuilder.Entity("Money.Data.Entities.FastOperation", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id")
+                        .HasColumnOrder(1);
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id")
+                        .HasColumnOrder(2);
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("integer")
+                        .HasColumnName("category_id");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("comment");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("name");
+
+                    b.Property<int?>("Order")
+                        .HasColumnType("integer")
+                        .HasColumnName("order");
+
+                    b.Property<int?>("PlaceId")
+                        .HasColumnType("integer")
+                        .HasColumnName("place_id");
+
+                    b.Property<decimal>("Sum")
+                        .HasColumnType("numeric")
+                        .HasColumnName("sum");
+
+                    b.HasKey("UserId", "Id")
+                        .HasName("pk_fast_operations");
+
+                    b.ToTable("fast_operations", (string)null);
+                });
+
+            modelBuilder.Entity("Money.Data.Entities.Operation", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("integer")
@@ -359,17 +559,13 @@ namespace Money.Data.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("sum");
 
-                    b.Property<int?>("TaskId")
-                        .HasColumnType("integer")
-                        .HasColumnName("task_id");
-
                     b.HasKey("UserId", "Id")
                         .HasName("pk_operations");
 
                     b.ToTable("operations", (string)null);
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.DomainPlace", b =>
+            modelBuilder.Entity("Money.Data.Entities.Place", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("integer")
@@ -401,35 +597,69 @@ namespace Money.Data.Migrations
                     b.ToTable("places", (string)null);
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.DomainUser", b =>
+            modelBuilder.Entity("Money.Data.Entities.RegularOperation", b =>
                 {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id")
+                        .HasColumnOrder(1);
+
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("id")
+                        .HasColumnOrder(2);
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<Guid>("AuthUserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("auth_user_id");
-
-                    b.Property<int>("NextCategoryId")
+                    b.Property<int>("CategoryId")
                         .HasColumnType("integer")
-                        .HasColumnName("next_category_id");
+                        .HasColumnName("category_id");
 
-                    b.Property<int>("NextOperationId")
+                    b.Property<string>("Comment")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("comment");
+
+                    b.Property<DateTime>("DateFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("date_from");
+
+                    b.Property<DateTime?>("DateTo")
+                        .HasColumnType("date")
+                        .HasColumnName("date_to");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("name");
+
+                    b.Property<int?>("PlaceId")
                         .HasColumnType("integer")
-                        .HasColumnName("next_operation_id");
+                        .HasColumnName("place_id");
 
-                    b.Property<int>("NextPlaceId")
+                    b.Property<DateTime?>("RunTime")
+                        .HasColumnType("date")
+                        .HasColumnName("run_time");
+
+                    b.Property<decimal>("Sum")
+                        .HasColumnType("numeric")
+                        .HasColumnName("sum");
+
+                    b.Property<int>("TimeTypeId")
                         .HasColumnType("integer")
-                        .HasColumnName("next_place_id");
+                        .HasColumnName("time_type_id");
 
-                    b.HasKey("Id")
-                        .HasName("pk_domain_users");
+                    b.Property<int?>("TimeValue")
+                        .HasColumnType("integer")
+                        .HasColumnName("time_value");
 
-                    b.ToTable("domain_users", (string)null);
+                    b.HasKey("UserId", "Id")
+                        .HasName("pk_regular_operations");
+
+                    b.ToTable("regular_operations", (string)null);
                 });
 
             modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreApplication", b =>
@@ -754,7 +984,7 @@ namespace Money.Data.Migrations
                         .HasConstraintName("fk_asp_net_user_tokens_asp_net_users_user_id");
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.DomainCategory", b =>
+            modelBuilder.Entity("Money.Data.Entities.Category", b =>
                 {
                     b.HasOne("Money.Data.Entities.DomainUser", "User")
                         .WithMany()
@@ -763,7 +993,7 @@ namespace Money.Data.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_categories_domain_users_user_id");
 
-                    b.HasOne("Money.Data.Entities.DomainCategory", "ParentCategory")
+                    b.HasOne("Money.Data.Entities.Category", "ParentCategory")
                         .WithMany("SubCategories")
                         .HasForeignKey("UserId", "ParentId")
                         .HasConstraintName("fk_categories_categories_user_id_parent_id");
@@ -773,7 +1003,52 @@ namespace Money.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.DomainOperation", b =>
+            modelBuilder.Entity("Money.Data.Entities.Debt", b =>
+                {
+                    b.HasOne("Money.Data.Entities.DomainUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_debts_domain_users_user_id");
+
+                    b.HasOne("Money.Data.Entities.DebtOwner", "Owner")
+                        .WithMany("Debts")
+                        .HasForeignKey("UserId", "OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_debts_debt_owners_user_id_owner_id");
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Money.Data.Entities.DebtOwner", b =>
+                {
+                    b.HasOne("Money.Data.Entities.DomainUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_debt_owners_domain_users_user_id");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Money.Data.Entities.FastOperation", b =>
+                {
+                    b.HasOne("Money.Data.Entities.DomainUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_fast_operations_domain_users_user_id");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Money.Data.Entities.Operation", b =>
                 {
                     b.HasOne("Money.Data.Entities.DomainUser", "User")
                         .WithMany()
@@ -785,7 +1060,7 @@ namespace Money.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.DomainPlace", b =>
+            modelBuilder.Entity("Money.Data.Entities.Place", b =>
                 {
                     b.HasOne("Money.Data.Entities.DomainUser", "User")
                         .WithMany()
@@ -793,6 +1068,18 @@ namespace Money.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_places_domain_users_user_id");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Money.Data.Entities.RegularOperation", b =>
+                {
+                    b.HasOne("Money.Data.Entities.DomainUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_regular_operations_domain_users_user_id");
 
                     b.Navigation("User");
                 });
@@ -824,9 +1111,14 @@ namespace Money.Data.Migrations
                     b.Navigation("Authorization");
                 });
 
-            modelBuilder.Entity("Money.Data.Entities.DomainCategory", b =>
+            modelBuilder.Entity("Money.Data.Entities.Category", b =>
                 {
                     b.Navigation("SubCategories");
+                });
+
+            modelBuilder.Entity("Money.Data.Entities.DebtOwner", b =>
+                {
+                    b.Navigation("Debts");
                 });
 
             modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreApplication", b =>

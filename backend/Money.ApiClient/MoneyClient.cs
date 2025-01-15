@@ -10,27 +10,32 @@ public class MoneyClient
     {
         HttpClient = client;
         Log = log;
-        Category = new CategoryClient(this);
-        Operation = new OperationClient(this);
+        Debt = new(this);
+        Category = new(this);
+        Operation = new(this);
+        FastOperation = new(this);
+        RegularOperation = new(this);
     }
 
     [ActivatorUtilitiesConstructor]
     public MoneyClient(HttpClient client, ILogger<MoneyClient> log) :
-        this(client, p => log.LogInformation(p))
+        this(client, p => log.LogInformation("API: {Message}", p))
     {
-
     }
 
     public HttpClient HttpClient { get; }
     public Action<string> Log { get; }
     public ApiUser? User { get; private set; }
 
+    public DebtClient Debt { get; }
     public CategoryClient Category { get; }
     public OperationClient Operation { get; }
+    public FastOperationClient FastOperation { get; }
+    public RegularOperationClient RegularOperation { get; }
 
     public void SetUser(string login, string password)
     {
-        User = new ApiUser
+        User = new()
         {
             Username = login,
             Password = password,
@@ -39,23 +44,24 @@ public class MoneyClient
 
     public async Task RegisterAsync(string email, string password)
     {
-        JsonContent requestContent = JsonContent.Create(new { email, password });
-        HttpResponseMessage response = await HttpClient.PostAsync("Account/register", requestContent);
+        var requestContent = JsonContent.Create(new { email, password });
+        var response = await HttpClient.PostAsync("Account/register", requestContent);
         response.EnsureSuccessStatusCode();
 
-        string content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync();
         Log(content);
     }
 
     public async Task<AuthData> LoginAsync(string username, string password, CancellationToken token = default)
     {
-        FormUrlEncodedContent requestContent = new([
-            new KeyValuePair<string, string>("grant_type", "password"),
-            new KeyValuePair<string, string>("username", username),
-            new KeyValuePair<string, string>("password", password),
-        ]);
+        var requestContent = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
+        {
+            new("grant_type", "password"),
+            new("username", username),
+            new("password", password),
+        });
 
-        HttpResponseMessage response = await HttpClient.PostAsync("connect/token", requestContent, token);
+        var response = await HttpClient.PostAsync("connect/token", requestContent, token);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadFromJsonAsync<AuthData>(token) ?? throw new InvalidOperationException();

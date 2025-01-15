@@ -1,7 +1,8 @@
 using Money.CoreLib;
 using NLog;
 using NLog.Web;
-Logger? logger = LogManager.Setup()
+
+var logger = LogManager.Setup()
     .LoadConfigurationFromAppSettings()
     .GetCurrentClassLogger();
 
@@ -9,14 +10,14 @@ logger.Debug("init main");
 
 try
 {
-    WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+    var builder = WebApplication.CreateBuilder(args);
 
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
     builder.AddServiceDefaults();
     builder.AddDefinitions(typeof(Program));
 
-    WebApplication app = builder.Build();
+    var app = builder.Build();
 
     app.UseDefinitions();
     app.MapDefaultEndpoints();

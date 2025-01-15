@@ -1,48 +1,49 @@
 ﻿using Money.Business.Enums;
 using Money.Data.Entities;
+using Money.Data.Extensions;
 
 namespace Money.Api.Tests.TestTools.Entities;
 
 /// <summary>
-///     Категория.
+/// Категория.
 /// </summary>
 public class TestCategory : TestObject
 {
     public TestCategory(TestUser user)
     {
         User = user;
-        IsNew = true;
-        Name = $"P{Guid.NewGuid()}";
-        OperationType = OperationTypes.Costs;
+
+        Name = TestRandom.GetString("Category");
+        OperationType = TestRandom.GetEnum<OperationTypes>();
     }
 
     /// <summary>
-    ///     Идентификатор.
+    /// Идентификатор.
     /// </summary>
     public int Id { get; private set; }
 
     /// <summary>
-    ///     Наименование.
+    /// Наименование.
     /// </summary>
     public string Name { get; }
 
     /// <summary>
-    ///     Родительская категория.
+    /// Родительская категория.
     /// </summary>
     public TestCategory? Parent { get; set; }
 
     /// <summary>
-    ///     Тип.
+    /// Тип.
     /// </summary>
-    public OperationTypes OperationType { get; }
+    public OperationTypes OperationType { get; private set; }
 
     /// <summary>
-    ///     Пользователь.
+    /// Пользователь.
     /// </summary>
     public TestUser User { get; }
 
     /// <summary>
-    ///     Удалена.
+    /// Удалена.
     /// </summary>
     public bool IsDeleted { get; set; }
 
@@ -58,17 +59,37 @@ public class TestCategory : TestObject
         return this;
     }
 
+    public TestCategory SetOperationType(OperationTypes value)
+    {
+        OperationType = value;
+        return this;
+    }
+
     public TestOperation WithOperation()
     {
-        TestOperation obj = new(this);
+        var obj = new TestOperation(this);
         obj.Attach(Environment);
         return obj;
     }
 
-    private void FillDbProperties(DomainCategory obj)
+    public TestFastOperation WithFastOperation()
+    {
+        var obj = new TestFastOperation(this);
+        obj.Attach(Environment);
+        return obj;
+    }
+
+    public TestRegularOperation WithRegularOperation()
+    {
+        var obj = new TestRegularOperation(this);
+        obj.Attach(Environment);
+        return obj;
+    }
+
+    private void FillDbProperties(Category obj)
     {
         obj.Name = Name;
-        obj.TypeId = OperationType;
+        obj.TypeId = (int)OperationType;
         obj.UserId = User.Id;
         obj.ParentId = Parent?.Id;
         obj.IsDeleted = IsDeleted;
@@ -78,11 +99,11 @@ public class TestCategory : TestObject
     {
         if (IsNew)
         {
-            DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
-            int categoryId = dbUser.NextCategoryId;
+            var dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
+            var categoryId = dbUser.NextCategoryId;
             dbUser.NextCategoryId++; // todo обработать канкаренси
 
-            DomainCategory obj = new()
+            var obj = new Category
             {
                 Id = categoryId,
                 Name = "",
@@ -96,7 +117,10 @@ public class TestCategory : TestObject
         }
         else
         {
-            DomainCategory obj = Environment.Context.Categories.First(x => x.UserId == User.Id && x.Id == Id);
+            var obj = Environment.Context.Categories
+                .IsUserEntity(User.Id, Id)
+                .First();
+
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }

@@ -7,7 +7,7 @@ public class DbContextDefinition : AppDefinition
 {
     public override void ConfigureServices(WebApplicationBuilder builder)
     {
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        builder.Services.AddDbContextPool<ApplicationDbContext>(options =>
         {
             options.UseNpgsql(builder.Configuration.GetConnectionString(nameof(ApplicationDbContext)));
             options.UseSnakeCaseNamingConvention();
@@ -19,7 +19,7 @@ public class DbContextDefinition : AppDefinition
     {
         if (app.Configuration["AUTO_MIGRATE"] == "true")
         {
-            app.Services.InilializeDbContext();
+            app.Services.InitializeDatabaseContext();
         }
     }
 }

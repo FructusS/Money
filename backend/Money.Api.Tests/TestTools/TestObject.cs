@@ -5,7 +5,7 @@ public abstract class TestObject
     private readonly List<TestObject> _objects = [];
 
     public DatabaseClient Environment { get; private set; } = null!;
-    protected bool IsNew { get; set; }
+    protected bool IsNew { get; set; } = true;
 
     public virtual void Attach(DatabaseClient env)
     {
@@ -24,18 +24,11 @@ public abstract class TestObject
     {
         LocalSave();
 
-        foreach (TestObject testObject in _objects)
+        foreach (var testObject in _objects)
         {
             testObject.SaveObject();
         }
 
         return this;
-    }
-}
-
-public abstract class ReadonlyTestObject : TestObject
-{
-    public override void LocalSave()
-    {
     }
 }

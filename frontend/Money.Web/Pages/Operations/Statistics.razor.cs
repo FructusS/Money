@@ -1,20 +1,25 @@
-﻿using ChartJs.Blazor.Common;
-using ChartJs.Blazor.PieChart;
+﻿using Microsoft.AspNetCore.Components;
 using Money.Web.Models.Charts;
 
 namespace Money.Web.Pages.Operations;
 
 public partial class Statistics
 {
-    private Dictionary<int, BarChart> _barCharts = default!;
-    private Dictionary<int, PieChart> _pieCharts = default!;
+    private Dictionary<int, BarChart>? _barCharts;
+    private Dictionary<int, PieChart>? _pieCharts;
+    private List<Category>? _categories;
 
-    protected override void OnInitialized()
+    private Dictionary<int, List<TreeItemData<OperationCategorySum>>> Sums { get; } = [];
+
+    [Inject]
+    private CategoryService CategoryService { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
     {
         Dictionary<int, BarChart> barCharts = new();
         Dictionary<int, PieChart> pieCharts = new();
 
-        foreach (OperationTypes.Value operationType in OperationTypes.Values)
+        foreach (var operationType in OperationTypes.Values)
         {
             barCharts.Add(operationType.Id, BarChart.Create(operationType.Id));
             pieCharts.Add(operationType.Id, PieChart.Create(operationType.Id));
@@ -22,80 +27,84 @@ public partial class Statistics
 
         _barCharts = barCharts;
         _pieCharts = pieCharts;
+        _categories = await CategoryService.GetAllAsync();
     }
 
-    protected override async void OnSearchChanged(object? sender, List<Operation>? operations)
+    protected override void OnSearchChanged(object? sender, OperationSearchEventArgs args)
     {
         List<Task> tasks = [];
 
-        Dictionary<int, Operation[]>? operationGroups = operations?
+        var operationGroups = args.Operations?
             .GroupBy(x => x.Category.Id!.Value)
             .ToDictionary(x => x.Key, x => x.ToArray());
 
-        foreach (OperationTypes.Value operationType in OperationTypes.Values)
+        foreach (var operationType in OperationTypes.Values)
         {
-            List<Category> categories = operations?
-                                            .Where(x => x.Category.OperationType.Id == operationType.Id)
-                                            .Select(x => x.Category)
-                                            .DistinctBy(x => x.Id)
-                                            .ToList()
-                                        ?? [];
+            var categories = args.Operations?
+                                 .Where(x => x.Category.OperationType.Id == operationType.Id)
+                                 .Select(x => x.Category)
+                                 .DistinctBy(x => x.Id)
+                                 .ToList()
+                             ?? [];
 
-            tasks.Add(_barCharts[operationType.Id].Update(operations, categories, OperationsFilter.DateRange));
-            tasks.Add(GeneratePieChart(operationGroups, categories, operationType));
+            tasks.Add(_barCharts![operationType.Id].UpdateAsync(args.Operations, categories, OperationsFilter.DateRange));
+
+            if (_categories is not { Count: not 0 } || operationGroups == null)
+            {
+                continue;
+            }
+
+            var cats = _categories.Where(x => x.OperationType.Id == operationType.Id).ToList();
+            var categorySums = CalculateCategorySums(cats, operationGroups, null);
+
+            tasks.Add(_pieCharts![operationType.Id].UpdateAsync(categorySums));
+            var sums = BuildChildren(categorySums);
+
+            Sums[operationType.Id] =
+            [
+                new TreeItemData<OperationCategorySum>
+                {
+                    Value = new()
+                    {
+                        Name = "Всего",
+                        TotalSum = sums.Sum(x => x.Value?.TotalSum ?? 0),
+                    },
+                    Children = sums,
+                },
+            ];
         }
 
-        await Task.WhenAll(tasks);
+        _ = Task.WhenAll(tasks);
+        StateHasChanged();
     }
 
-    private Task GeneratePieChart(Dictionary<int, Operation[]>? operations, List<Category> categories, OperationTypes.Value operationType)
+    private List<TreeItemData<OperationCategorySum>> BuildChildren(List<OperationCategorySum> categories)
     {
-        PieChart chart = _pieCharts[operationType.Id];
-        ChartData configData = chart.Config.Data;
-
-        configData.Datasets.Clear();
-        configData.Labels.Clear();
-
-        if (operations != null)
-        {
-            FillPieChart(configData, operations, categories, operationType);
-        }
-
-        return chart.Chart.Update();
+        return categories.Where(x => x.TotalSum > 0)
+            .Select(child => new TreeItemData<OperationCategorySum>
+            {
+                Text = child.Name,
+                Value = child,
+                Children = child.SubCategories == null ? null : BuildChildren(child.SubCategories),
+            })
+            .OrderBy(item => item.Value?.TotalSum)
+            .ThenBy(item => item.Value?.Name)
+            .ToList();
     }
 
-    private void FillPieChart(ChartData configData, Dictionary<int, Operation[]> operations, List<Category> categories, OperationTypes.Value operationType)
+    private List<OperationCategorySum> CalculateCategorySums(List<Category> categories, Dictionary<int, Operation[]> operations, int? parentId)
     {
-        List<CategoryOperationSum> categorySums = CalculateCategorySums(categories, operationType.Id, operations, null);
+        var categorySums = new List<OperationCategorySum>();
 
-        PieDataset<decimal> dataset = [];
-        configData.Datasets.Add(dataset);
-
-        List<string> colors = [];
-
-        foreach (CategoryOperationSum category in categorySums.Where(x => x.ParentId == null && x.TotalSum != 0))
+        foreach (var category in categories.Where(x => x.ParentId == parentId))
         {
-            configData.Labels.Add(category.Name);
-            colors.Add(category.Color ?? Random.Shared.NextColor());
-            dataset.Add(category.TotalSum);
-        }
-
-        dataset.BackgroundColor = colors.ToArray();
-    }
-
-    private List<CategoryOperationSum> CalculateCategorySums(List<Category> categories, int operationTypeId, Dictionary<int, Operation[]> operations, int? parentId)
-    {
-        List<CategoryOperationSum> categorySums = [];
-
-        foreach (Category category in categories.Where(x => x.OperationType.Id == operationTypeId && x.ParentId == parentId))
-        {
-            decimal totalMainSum = category.Id != null && operations.TryGetValue(category.Id.Value, out Operation[]? operationGroup)
+            var totalMainSum = category.Id != null && operations.TryGetValue(category.Id.Value, out var operationGroup)
                 ? operationGroup.Sum(op => op.Sum)
                 : 0;
 
-            List<CategoryOperationSum> childCategorySums = CalculateCategorySums(categories, operationTypeId, operations, category.Id);
+            var childCategorySums = CalculateCategorySums(categories, operations, category.Id);
 
-            CategoryOperationSum categorySum = new()
+            var operationCategorySum = new OperationCategorySum
             {
                 Name = category.Name,
                 Color = category.Color,
@@ -106,26 +115,16 @@ public partial class Statistics
 
             if (childCategorySums.Count > 0)
             {
-                categorySum.SubCategories.Add(new CategoryOperationSum
+                operationCategorySum.SubCategories.Add(new()
                 {
                     Name = category.Name,
                     TotalSum = totalMainSum,
                 });
             }
 
-            categorySums.Add(categorySum);
+            categorySums.Add(operationCategorySum);
         }
 
         return categorySums;
-    }
-
-    public class CategoryOperationSum
-    {
-        public required string Name { get; set; }
-        public string? Color { get; set; }
-        public decimal MainSum { get; set; }
-        public decimal TotalSum { get; set; }
-        public int? ParentId { get; set; }
-        public List<CategoryOperationSum>? SubCategories { get; set; }
     }
 }

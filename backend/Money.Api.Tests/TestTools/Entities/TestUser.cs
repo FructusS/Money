@@ -1,51 +1,69 @@
-﻿using Money.Data.Entities;
-
-namespace Money.Api.Tests.TestTools.Entities;
+﻿namespace Money.Api.Tests.TestTools.Entities;
 
 /// <summary>
-///     Пользователь.
+/// Пользователь.
 /// </summary>
 public class TestUser : TestObject
 {
     public TestUser()
     {
-        IsNew = true;
         Login = $"test_{Guid.NewGuid()}@bobgroup.test.ru";
         Password = "123Qwerty9000!";
     }
 
     /// <summary>
-    ///     Идентификатор.
+    /// Идентификатор.
     /// </summary>
     public int Id { get; private set; }
 
     /// <summary>
-    ///     Логин.
+    /// Логин.
     /// </summary>
     public string Login { get; }
 
     /// <summary>
-    ///     Пароль.
+    /// Пароль.
     /// </summary>
     public string Password { get; }
 
     public TestCategory WithCategory()
     {
-        TestCategory obj = new(this);
+        var obj = new TestCategory(this);
         obj.Attach(Environment);
         return obj;
     }
 
     public TestOperation WithOperation()
     {
-        TestOperation obj = new(WithCategory());
+        var obj = new TestOperation(WithCategory());
+        obj.Attach(Environment);
+        return obj;
+    }
+
+    public TestFastOperation WithFastOperation()
+    {
+        var obj = new TestFastOperation(WithCategory());
+        obj.Attach(Environment);
+        return obj;
+    }
+
+    public TestRegularOperation WithRegularOperation()
+    {
+        var obj = new TestRegularOperation(WithCategory());
         obj.Attach(Environment);
         return obj;
     }
 
     public TestPlace WithPlace()
     {
-        TestPlace obj = new(this);
+        var obj = new TestPlace(this);
+        obj.Attach(Environment);
+        return obj;
+    }
+
+    public TestDebt WithDebt()
+    {
+        var obj = new TestDebt(this);
         obj.Attach(Environment);
         return obj;
     }
@@ -56,10 +74,10 @@ public class TestUser : TestObject
         {
             Environment.ApiClient.RegisterAsync(Login, Password).Wait();
 
-            ApplicationUser dbUser = Environment.Context.Users
+            var dbUser = Environment.Context.Users
                 .Single(x => x.UserName == Login);
 
-            DomainUser domainUser = Environment.Context.DomainUsers
+            var domainUser = Environment.Context.DomainUsers
                 .Single(x => x.AuthUserId == dbUser.Id);
 
             Id = domainUser.Id;

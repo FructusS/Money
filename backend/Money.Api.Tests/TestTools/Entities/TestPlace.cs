@@ -1,4 +1,5 @@
 ﻿using Money.Data.Entities;
+using Money.Data.Extensions;
 
 namespace Money.Api.Tests.TestTools.Entities;
 
@@ -7,8 +8,8 @@ public class TestPlace : TestObject
     public TestPlace(TestUser user)
     {
         User = user;
-        Name = "Place_" + Guid.NewGuid();
-        IsNew = true;
+
+        Name = TestRandom.GetString("Place");
     }
 
     public int Id { get; private set; }
@@ -18,7 +19,7 @@ public class TestPlace : TestObject
     public DateTime LastUsedDate { get; private set; }
 
     /// <summary>
-    ///     Пользователь.
+    /// Пользователь.
     /// </summary>
     public TestUser User { get; }
 
@@ -28,7 +29,7 @@ public class TestPlace : TestObject
         return this;
     }
 
-    private void FillDbProperties(DomainPlace obj)
+    private void FillDbProperties(Place obj)
     {
         obj.Name = Name;
         obj.LastUsedDate = LastUsedDate;
@@ -38,11 +39,11 @@ public class TestPlace : TestObject
     {
         if (IsNew)
         {
-            DomainUser dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
-            int id = dbUser.NextPlaceId;
+            var dbUser = Environment.Context.DomainUsers.Single(x => x.Id == User.Id);
+            var id = dbUser.NextPlaceId;
             dbUser.NextPlaceId++; // todo обработать канкаренси
 
-            DomainPlace obj = new()
+            var obj = new Place
             {
                 Id = id,
                 Name = "",
@@ -57,7 +58,10 @@ public class TestPlace : TestObject
         }
         else
         {
-            DomainPlace obj = Environment.Context.Places.First(x => x.UserId == User.Id && x.Id == Id);
+            var obj = Environment.Context.Places
+                .IsUserEntity(User.Id, Id)
+                .First();
+
             FillDbProperties(obj);
             Environment.Context.SaveChanges();
         }
