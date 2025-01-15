@@ -43,6 +43,9 @@ jobs:
       - name: Install EF CLI
         run: dotnet tool install --global dotnet-ef
 
+      - name: Create folder for test
+        run: mkdir FolderForTest
+
       - name: Restore backend dependencies
         run: dotnet restore
 
