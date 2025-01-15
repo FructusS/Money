@@ -5,6 +5,7 @@ namespace Money.Api.Definitions;
 
 public class FilesStorageDefinition : AppDefinition
 {
+    public override bool Enabled => false;
     public override int ApplicationOrderIndex => 2;
 
     public override void ConfigureServices(WebApplicationBuilder builder)
